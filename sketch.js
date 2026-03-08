@@ -27,12 +27,12 @@ let player, sensor;
 let playerImg;
 
 let playerAnis = {
-  idle: { row: 0, frames: 4, frameDelay: 10 },
-  run: { row: 1, frames: 4, frameDelay: 3 },
+  idle: { row: 0, frames: 6, frameDelay: 10 },
+  run: { row: 1, frames: 8, frameDelay: 3 },
   jump: { row: 2, frames: 3, frameDelay: Infinity, frame: 0 },
   attack: { row: 3, frames: 6, frameDelay: 2 },
-  hurtPose: { row: 5, frames: 4, frameDelay: Infinity },
-  death: { row: 5, frames: 4, frameDelay: 16 },
+  hurtPose: { row: 7, frames: 4, frameDelay: Infinity },
+  death: { row: 6, frames: 10, frameDelay: 16 },
 };
 
 let boar;
@@ -58,7 +58,12 @@ const KNOCK_FRAMES = 30;
 let won = false;
 
 let ground, groundDeep, platformsL, platformsR, wallsL, wallsR;
-let groundTileImg, groundTileDeepImg, platformLCImg, platformRCImg, wallLImg, wallRImg;
+let groundTileImg,
+  groundTileDeepImg,
+  platformLCImg,
+  platformRCImg,
+  wallLImg,
+  wallRImg;
 
 let bgLayers = [];
 let bgForeImg, bgMidImg, bgFarImg;
@@ -77,7 +82,7 @@ let lastHealth = null;
 let lastMaxHealth = null;
 
 let score = 0;
-let maxHealth = 3;
+let maxHealth = 10;
 let health = maxHealth;
 
 let dead = false;
@@ -107,11 +112,11 @@ let level = [
   "   fx  b        x   b                   ", // row  4
   "   LgggR   x   LR   LgR x   b  xf       ", // row  5
   "         LgR  b x       g   LggggR      ", // row  6
-  " fx           LgR                    fx ", // row  7
+  "  x           LgR                     x ", // row  7
   " LgR      b                         LggR", // row  8
   "         LgR        f x    LR  LgR  [dd]", // row  9
   "   x     [d]      x LggR   x    ff  [dd]", // row 10
-  "LgggRffLggggggRfffLgggg]fffgfLgggggggggg", // row 11
+  "LgggggggggggggRffLggggg]fffgfLgggggggggg", // row 11
   "dddddddddddddddddddddddddddddddddddddddd", // row 12
 ];
 
@@ -173,7 +178,9 @@ const GLYPH_W = CELL * FONT_SCALE;
 const GLYPH_H = CELL * FONT_SCALE;
 
 const FONT_CHARS =
-  " !\"#$%&'()*+,-./0123456789:;<=>?@" + "ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`" + "abcdefghijklmnopqrstuvwxyz{|}~";
+  " !\"#$%&'()*+,-./0123456789:;<=>?@" +
+  "ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`" +
+  "abcdefghijklmnopqrstuvwxyz{|}~";
 
 // gravity
 const GRAVITY = 10;
@@ -192,14 +199,14 @@ function tileAtWorld(x, y) {
 }
 
 function preload() {
-  playerImg = loadImage("assets/foxSpriteSheet.png");
+  playerImg = loadImage("assets/SPRITE_SHEET.png"); //add citation
   boarImg = loadImage("assets/boarSpriteSheet.png");
   leafImg = loadImage("assets/leafSpriteSheet.png");
   fireImg = loadImage("assets/fireSpriteSheet.png");
 
-  bgFarImg = loadImage("assets/background_layer_1.png");
-  bgMidImg = loadImage("assets/background_layer_2.png");
-  bgForeImg = loadImage("assets/background_layer_3.png");
+  bgFarImg = loadImage("assets/GrassLand_Background_1.png"); //add citation
+  bgMidImg = loadImage("assets/GrassLand_Background_3.png"); //add citation
+  bgForeImg = loadImage("assets/GrassLand_Background_4.png"); //add citation
 
   groundTileImg = loadImage("assets/groundTile.png");
   groundTileDeepImg = loadImage("assets/groundTileDeep.png");
@@ -257,7 +264,11 @@ function draw() {
   camera.height = VIEWH;
 
   let targetX = constrain(player.x, VIEWW / 2, LEVELW - VIEWW / 2 - TILE_W / 2);
-  let targetY = constrain(player.y, VIEWH / 2 - TILE_H * 2, LEVELH - VIEWH / 2 - TILE_H);
+  let targetY = constrain(
+    player.y,
+    VIEWH / 2 - TILE_H * 2,
+    LEVELH - VIEWH / 2 - TILE_H,
+  );
 
   camera.x = Math.round(lerp(camera.x || targetX, targetX, 0.1));
   camera.y = Math.round(lerp(camera.y || targetY, targetY, 0.1));
@@ -267,7 +278,15 @@ function draw() {
 
   // --- PLAYER INPUT (disabled during knockback / death) ---
   // ATTACK
-  if (!dead && !won && knockTimer === 0 && !pendingDeath && grounded && !attacking && kb.presses("space")) {
+  if (
+    !dead &&
+    !won &&
+    knockTimer === 0 &&
+    !pendingDeath &&
+    grounded &&
+    !attacking &&
+    kb.presses("space")
+  ) {
     attacking = true;
     attackHitThisSwing = false;
     attackFrameCounter = 0;
@@ -278,7 +297,14 @@ function draw() {
   }
 
   // JUMP
-  if (!dead && !won && knockTimer === 0 && !pendingDeath && grounded && kb.presses("up")) {
+  if (
+    !dead &&
+    !won &&
+    knockTimer === 0 &&
+    !pendingDeath &&
+    grounded &&
+    kb.presses("up")
+  ) {
     player.vel.y = -1 * PLAYER_JUMP;
   }
 
@@ -292,7 +318,11 @@ function draw() {
   } else if (!dead && attacking) {
     attackFrameCounter++;
 
-    if (!attackHitThisSwing && attackFrameCounter >= 4 && attackFrameCounter <= 8) {
+    if (
+      !attackHitThisSwing &&
+      attackFrameCounter >= 4 &&
+      attackFrameCounter <= 8
+    ) {
       tryHitBoar();
     }
 
@@ -416,7 +446,11 @@ function draw() {
   sensor.y = sy;
 
   // --- HUD ---
-  if (score !== lastScore || health !== lastHealth || maxHealth !== lastMaxHealth) {
+  if (
+    score !== lastScore ||
+    health !== lastHealth ||
+    maxHealth !== lastMaxHealth
+  ) {
     redrawHUD();
     lastScore = score;
     lastHealth = health;
@@ -439,7 +473,10 @@ function draw() {
 
 function applyIntegerScale() {
   const c = document.querySelector("canvas");
-  const scale = Math.max(1, Math.floor(Math.min(window.innerWidth / VIEWW, window.innerHeight / VIEWH)));
+  const scale = Math.max(
+    1,
+    Math.floor(Math.min(window.innerWidth / VIEWW, window.innerHeight / VIEWH)),
+  );
   c.style.width = VIEWW * scale + "px";
   c.style.height = VIEWH * scale + "px";
 }
@@ -462,7 +499,17 @@ function drawBitmapTextToGfx(g, str, x, y, scale = FONT_SCALE) {
     const sx = col * CELL;
     const sy = row * CELL;
 
-    g.image(fontImg, Math.round(x + i * dw), Math.round(y), dw, dh, sx, sy, CELL, CELL);
+    g.image(
+      fontImg,
+      Math.round(x + i * dw),
+      Math.round(y),
+      dw,
+      dh,
+      sx,
+      sy,
+      CELL,
+      CELL,
+    );
   }
 }
 
@@ -564,7 +611,10 @@ function playerHitByBoar(player, e) {
 
 // --- PLAYER ATTACK -> BOAR ---
 function tryHitBoar() {
-  const grounded = sensor.overlapping(ground) || sensor.overlapping(platformsL) || sensor.overlapping(platformsR);
+  const grounded =
+    sensor.overlapping(ground) ||
+    sensor.overlapping(platformsL) ||
+    sensor.overlapping(platformsR);
   if (!grounded) return;
 
   const facingDir = player.mirror.x ? -1 : 1;
@@ -775,7 +825,12 @@ function updateGroundProbe(e) {
 
 function frontProbeHasGroundAhead(e) {
   const p = e.frontProbe;
-  return p.overlapping(ground) || p.overlapping(groundDeep) || p.overlapping(platformsL) || p.overlapping(platformsR);
+  return (
+    p.overlapping(ground) ||
+    p.overlapping(groundDeep) ||
+    p.overlapping(platformsL) ||
+    p.overlapping(platformsR)
+  );
 }
 
 function frontProbeHitsWall(e) {
@@ -792,7 +847,12 @@ function shouldTurnNow(e, dangerNow) {
 
 function boarGrounded(e) {
   const p = e.groundProbe;
-  return p.overlapping(ground) || p.overlapping(groundDeep) || p.overlapping(platformsL) || p.overlapping(platformsR);
+  return (
+    p.overlapping(ground) ||
+    p.overlapping(groundDeep) ||
+    p.overlapping(platformsL) ||
+    p.overlapping(platformsR)
+  );
 }
 
 // --- BOAR AI (simple + reliable) ---
@@ -925,7 +985,12 @@ function updateBoars() {
     // 3) extra: turn if the "above" probe sees fire (early warning)
     const headSeesFire = e.footProbe.overlapping(fire);
 
-    const dangerNow = noGroundAhead || frontHitsLeaf || frontHitsFire || frontHitsWall || headSeesFire;
+    const dangerNow =
+      noGroundAhead ||
+      frontHitsLeaf ||
+      frontHitsFire ||
+      frontHitsWall ||
+      headSeesFire;
 
     if (e.turnTimer === 0 && shouldTurnNow(e, dangerNow)) {
       turnBoar(e, -e.dir); // already nudges + vel.x=0
