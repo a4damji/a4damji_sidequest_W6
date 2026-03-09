@@ -1,28 +1,3 @@
-/*
-  Week 6 — Example 4: Adding HUD (Score/Health), Enemies, and Interactive Objects
-
-  Course: GBDA302 | Instructors: Dr. Karen Cochrane & David Han
-  Date: Feb. 26, 2026
-
-  Controls:
-    A or D (Left / Right Arrow)   Horizontal movement
-    W (Up Arrow)                  Jump
-    Space Bar                     Attack
-    R                             Restart (only when dead)
-
-  Tile key:
-    g = groundTile.png       (surface ground)
-    d = groundTileDeep.png   (deep ground, below surface)
-    L = platformLC.png       (platform left cap)  -> boars turn
-    R = platformRC.png       (platform right cap) -> boars turn
-    [ = wallL.png            (wall left side)     -> boars turn
-    ] = wallR.png            (wall right side)    -> boars turn
-    b = boar spawn
-    x = leaf collectible (boars pass through)
-    f = fire hazard (player takes damage, boars turn around if they "see" it ahead)
-      = empty (no sprite)
-*/
-
 let player, sensor;
 let playerImg;
 
@@ -40,9 +15,9 @@ let boarImg;
 let boarSpawns = [];
 
 let boarAnis = {
-  run: { row: 1, frames: 4, frameDelay: 3 },
-  throwPose: { row: 4, frames: 1, frameDelay: Infinity, frame: 0 },
-  death: { row: 5, frames: 4, frameDelay: 16 },
+  run: { row: 3, frames: 8, frameDelay: 3 },
+  throwPose: { row: 7, frames: 8, frameDelay: Infinity, frame: 0 },
+  death: { row: 5, frames: 3, frameDelay: 16 },
 };
 
 let attacking = false;
@@ -75,6 +50,12 @@ let leafSpawns = [];
 let fire;
 let fireImg;
 
+let bgmusic;
+let jumpsound;
+let attacksound;
+let damagesound;
+let collectsound;
+
 let fontImg;
 let hudGfx;
 let lastScore = null;
@@ -82,7 +63,7 @@ let lastHealth = null;
 let lastMaxHealth = null;
 
 let score = 0;
-let maxHealth = 10;
+let maxHealth = 7;
 let health = maxHealth;
 
 let dead = false;
@@ -199,14 +180,22 @@ function tileAtWorld(x, y) {
 }
 
 function preload() {
-  playerImg = loadImage("assets/SPRITE_SHEET.png"); //add citation
-  boarImg = loadImage("assets/boarSpriteSheet.png");
-  leafImg = loadImage("assets/leafSpriteSheet.png");
+  playerImg = loadImage("assets/SPRITE_SHEET.png"); //Figure 6
+  boarImg = loadImage("assets/AnimationSheet_Character.png"); //Figure 8
+  leafImg = loadImage("assets/Cat Sprite Sheet.png"); //Figure 5
   fireImg = loadImage("assets/fireSpriteSheet.png");
 
-  bgFarImg = loadImage("assets/GrassLand_Background_1.png"); //add citation
-  bgMidImg = loadImage("assets/GrassLand_Background_3.png"); //add citation
-  bgForeImg = loadImage("assets/GrassLand_Background_4.png"); //add citation
+  bgFarImg = loadImage("assets/background2.png"); //Figure 9
+  bgMidImg = loadImage("assets/background3.png"); //Figure 9
+  bgForeImg = loadImage("assets/background4a.png"); //Figure 9
+
+  //sounds
+  soundFormats("mp3", "wav", "ogg");
+  bgmusic = loadSound("assets/Conquest - Blacksmith (freetouse.com).mp3"); //Figure 3
+  jumpsound = loadSound("assets/qubodup-cfork-ccby3-jump.ogg"); //Figure 2
+  attacksound = loadSound("assets/retro_sound_1_0.wav"); //Figure 1
+  damagesound = loadSound("assets/8bit_bomb_explosion.wav"); //Figure 7
+  collectsound = loadSound("assets/jump_01.wav"); //Figure 4
 
   groundTileImg = loadImage("assets/groundTile.png");
   groundTileDeepImg = loadImage("assets/groundTileDeep.png");
@@ -253,6 +242,10 @@ function setup() {
 function draw() {
   background(69, 61, 79);
 
+  //background music
+  if (!bgmusic.isPlaying()) {
+    bgmusic.loop();
+  }
   // 1) decide boar vel/turns using probes
   updateBoars();
 
@@ -294,6 +287,7 @@ function draw() {
     player.ani.frame = 0;
     player.ani = "attack";
     player.ani.play();
+    attacksound.play();
   }
 
   // JUMP
@@ -306,12 +300,16 @@ function draw() {
     kb.presses("up")
   ) {
     player.vel.y = -1 * PLAYER_JUMP;
+    jumpsound.play();
   }
 
   // --- PLAYER STATE / ANIMATION ---
   if (!dead && knockTimer > 0) {
     player.ani = "hurtPose";
     player.ani.frame = 1;
+    if (!damagesound.isPlaying()) {
+      damagesound.play();
+    }
   } else if (!dead && pendingDeath) {
     player.ani = "hurtPose";
     player.ani.frame = 1;
@@ -534,7 +532,7 @@ function redrawHUD() {
   drawOutlinedTextToGfx(hudGfx, `RESCUED ${score}/15`, 6, 6, "#ffdc00");
 
   const heartChar = "~";
-  const heartX = 200;
+  const heartX = 150;
   const heartY = 6;
   const spacing = GLYPH_W + 2;
 
@@ -562,6 +560,7 @@ function rescueLeaf(player, leaf) {
   leaf.visible = false;
   leaf.removeColliders();
   score++;
+  collectsound.play();
 
   // win condition
   if (score >= WIN_SCORE) {
@@ -1137,7 +1136,7 @@ function makeWorld() {
   leaf = new Group();
   leaf.physics = "static";
   leaf.spriteSheet = leafImg;
-  leaf.addAnis({ idle: { w: 32, h: 32, row: 0, frames: 5 } });
+  leaf.addAnis({ idle: { w: 32, h: 32, row: 0, frames: 4 } });
   leaf.w = 10;
   leaf.h = 6;
   leaf.anis.offset.x = 2;
@@ -1195,7 +1194,7 @@ function makeWorld() {
 
   player.anis.w = FRAME_W;
   player.anis.h = FRAME_H;
-  player.anis.offset.y = -8;
+  player.anis.offset.y = -4;
   player.addAnis(playerAnis);
 
   player.ani = "idle";
