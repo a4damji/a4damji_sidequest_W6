@@ -1,6 +1,24 @@
-# a4damji_sidequestW6
+## Project Title
 
-# Assets
+a4damji_sidequest_w6
+
+---
+
+## Authors
+
+Amara Damji, a4damji, 21071052
+
+---
+
+## Description
+
+From the fox and boar forest game it has now becomes a dungeon where you ust rescue all the cats
+
+## Set up and Interactions
+
+To move the player use the arrow keys (left arrow to go left, right arrow to go right, up arrow to jump), to attack enemies click space. Goal is to save all 15 cats.
+
+## Assets
 
 [1] artisticdude. 2011. Retro Sounds. WAV. https://opengameart.org/content/retro-sounds-0
 [2] cfork and qubodup. 2012. Cute Cartoon Jump Sound Effect. OGG. https://opengameart.org/content/cute-cartoon-jump-sound-effect
