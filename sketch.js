@@ -95,7 +95,7 @@ let level = [
   "         LgR  b x       g   LggggR      ", // row  6
   "  x           LgR                     x ", // row  7
   " LgR      b                         LggR", // row  8
-  "         LgR        f x    LR  LgR  [dd]", // row  9
+  "         LgR          x    LR  LgR  [dd]", // row  9
   "   x     [d]      x LggR   x    ff  [dd]", // row 10
   "LgggggggggggggRffLggggg]fffgfLgggggggggg", // row 11
   "dddddddddddddddddddddddddddddddddddddddd", // row 12
